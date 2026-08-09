@@ -1,6 +1,41 @@
 .idea/
 *.pyc
-*.key
 *.log
 .DS_Store
 */.DS_Store
+
+# Runtime/environment secrets
+.env
+.env.*
+!.env.example
+*.secret
+*.secrets
+secrets/
+secret/
+secret_keys/
+credentials/
+
+# Private key / certificate material
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+
+# Local/cloud credential files
+.aws/
+.gnupg/
+.ssh/
+service-account*.json
+credentials*.json
+
+# Local deployment/runtime state
+*.sqlite
+*.sqlite3
+*.pid
+*.sock
