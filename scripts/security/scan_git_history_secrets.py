@@ -65,6 +65,7 @@ def scan(repo: Path, max_commits: int | None) -> dict[str, object]:
                 "-I",
                 "-l",
                 "-E",
+                "-e",
                 pattern,
                 commit,
                 "--",
