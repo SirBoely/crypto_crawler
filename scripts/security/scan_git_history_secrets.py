@@ -68,6 +68,7 @@ def scan(repo: Path, max_commits: int | None) -> dict[str, object]:
                 pattern,
                 commit,
                 "--",
+                ".",
                 check=False,
             )
             if result.returncode not in {0, 1}:
