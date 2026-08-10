@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import os
+
 import telegram
 
 from utils.debug_utils import print_to_console, LOG_ALL_ERRORS
@@ -12,15 +14,25 @@ from enums.notifications import NOTIFICATION
 MAX_MESSAGE_LENGTH = 4000
 
 
-BOT = telegram.Bot(token='438844686:AAE8lS3VyMsNgtytR4I1uWy4DLUaot2e5hU')
+def _get_bot():
+    """Create the Telegram client from runtime secret injection only."""
+    token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+    if not token:
+        raise RuntimeError("TELEGRAM_BOT_TOKEN is not configured")
+    return telegram.Bot(token=token)
 
 
 def get_chat_id_by_type(notification_id):
-    return {
-        NOTIFICATION.ARBITRAGE: -218431137,
-        NOTIFICATION.DEBUG: -299464102,
-        NOTIFICATION.DEAL: -250154235
+    env_name = {
+        NOTIFICATION.ARBITRAGE: "TELEGRAM_CHAT_ID_ARBITRAGE",
+        NOTIFICATION.DEBUG: "TELEGRAM_CHAT_ID_DEBUG",
+        NOTIFICATION.DEAL: "TELEGRAM_CHAT_ID_DEAL",
     }[notification_id]
+
+    value = os.environ.get(env_name, "").strip()
+    if not value:
+        raise RuntimeError("{name} is not configured".format(name=env_name))
+    return int(value)
 
 
 def log_error_send_message(func_name, some_message, exception):
@@ -30,10 +42,10 @@ def log_error_send_message(func_name, some_message, exception):
 
 
 def send_single_message_no_parsing(some_message, notification_type):
-    chat_id = get_chat_id_by_type(notification_type)
     res = STATUS.FAILURE
     try:
-        BOT.send_message(chat_id=chat_id, text=str(some_message), timeout=5, parse_mode=None)
+        chat_id = get_chat_id_by_type(notification_type)
+        _get_bot().send_message(chat_id=chat_id, text=str(some_message), timeout=5, parse_mode=None)
         res = STATUS.SUCCESS
     except Exception as e:
         log_error_send_message("send_single_message_no_parsing", some_message, e)
@@ -46,11 +58,10 @@ def send_single_message(some_message, notification_type):
     if len(some_message) > MAX_MESSAGE_LENGTH:
         some_message = some_message[:MAX_MESSAGE_LENGTH] + "... etc"
 
-    chat_id = get_chat_id_by_type(notification_type)
-
     try:
-        BOT.send_message(chat_id=chat_id, text=str(some_message), timeout=5,
-                         parse_mode=telegram.ParseMode.HTML)
+        chat_id = get_chat_id_by_type(notification_type)
+        _get_bot().send_message(chat_id=chat_id, text=str(some_message), timeout=5,
+                                parse_mode=telegram.ParseMode.HTML)
         res = STATUS.SUCCESS
     except Exception as e:
         log_error_send_message("send_single_message", some_message, e)
