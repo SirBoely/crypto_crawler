@@ -1,0 +1,38 @@
+name: Telegram Runtime Canary Validation
+
+on:
+  pull_request:
+    paths:
+      - 'tools/telegram_runtime_canary.sh'
+      - 'tools/test_telegram_runtime_canary.sh'
+      - 'install_telegram_runtime_canary_termux.sh'
+      - '.github/workflows/telegram-runtime-canary-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Shell syntax
+        run: |
+          bash -n tools/telegram_runtime_canary.sh
+          bash -n tools/test_telegram_runtime_canary.sh
+          bash -n install_telegram_runtime_canary_termux.sh
+
+      - name: Safety tests
+        run: bash tools/test_telegram_runtime_canary.sh
+
+      - name: Confirm non-financial canary scope
+        run: |
+          echo 'BOT_AUTH_ONLY=true'
+          echo 'CHAT_BINDING_ONLY=true'
+          echo 'TRADING_EXECUTION=NONE'
+          echo 'PAYMENTS=NONE'
+          echo 'ORDERS=NONE'
+          echo 'TOKEN_VALUE_EMITTED=false'
